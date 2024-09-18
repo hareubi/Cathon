@@ -18,7 +18,7 @@ func TestLookupIdent(t *testing.T) {
 		{"x", IDENT},      // Single character identifier
 	}
 
-	for i, tt := range tests {
+	for _, tt := range tests {
 		tokType := LookupIdent(tt.input)
 		if tokType != tt.expected {
 			t.Errorf("expected %q for input %q, got %q", tt.expected, tt.input, tokType)

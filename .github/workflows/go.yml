@@ -3,7 +3,7 @@
 
 name: Go
 permissions:
-  repository-projects: write
+  pages: write
 on:
   push:
     branches: [ "main" ]

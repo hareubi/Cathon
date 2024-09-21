@@ -34,13 +34,13 @@ func TestLetStatements(t *testing.T) {
 
 	for i, tt := range tests {
 		stmt := program.Statements[i]
-		if !TestLetStatement(t, stmt, tt.expectedIdentifier) {
+		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
 			return
 		}
 	}
 }
 
-func TestLetStatement(t *testing.T, testStatement ast.Statement, name string) bool {
+func testLetStatement(t *testing.T, testStatement ast.Statement, name string) bool {
 	if testStatement.TokenLiteral() != "let" {
 		t.Errorf("testStatement.TokenLiteral is not 'let'. got %q", testStatement.TokenLiteral())
 		return false
@@ -52,10 +52,10 @@ func TestLetStatement(t *testing.T, testStatement ast.Statement, name string) bo
 		return false
 	}
 	if letStmt.Name.Value != name {
-		t.Errorf("letStmt.Name.Value is not '%s'. got %s", name, letStmt.Name.Value)
+		t.Errorf("letStmt.Name.Value is not '%s'. got=%s", name, letStmt.Name.Value)
 		return false
 	}
-	if testStatement.TokenLiteral() != "let" {
+	if letStmt.TokenLiteral() != "let" {
 		t.Errorf("letStmt.Name.TokenLiteral() is not '%s'. got %q", name, letStmt.Name.TokenLiteral())
 		return false
 	}

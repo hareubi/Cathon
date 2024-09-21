@@ -28,8 +28,9 @@ jobs:
     - name: Test
       run: go test -v -c ./...
 
-    - name: Update coverage report
-      uses: ncruces/go-coverage-report@v0
+    - uses: ncruces/go-coverage-report@v0
       with:
-        output-dir: coverage
+        coverage-file: coverage.out
+        chart: true
+        amend: true
             

@@ -3,6 +3,8 @@
  
 [![Go](https://github.com/hareubi/Cathon/actions/workflows/go.yml/badge.svg?branch=main)](https://github.com/hareubi/Cathon/actions/workflows/go.yml)
 
+[![Go Coverage](https://github.com/hareubi/cathon/wiki/coverage.svg)](https://raw.githack.com/wiki/hareubi/cathon/coverage.html)
+
 
 interpreter/compiler base code
 Copyright (c) 2016-2017 Thorsten Ball

@@ -3,7 +3,7 @@
 
 name: Go
 permissions:
-  pages: write
+  contents: write
 on:
   push:
     branches: [ "main" ]

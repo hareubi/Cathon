@@ -6,9 +6,12 @@ import (
 	"cathon/token"
 )
 
-func New(lexerP *lexer.Lexer) *Parser {
+func New(lexerP *lexer.Lexer) Parser {
 	p := Parser{l: lexerP}
-	return &p
+	p.NextToken()
+	p.NextToken()
+
+	return p
 }
 
 type Parser struct {
@@ -51,6 +54,8 @@ func (parserP *Parser) ParseLetStatement() *ast.LetStatement {
 	if !parserP.expectPeek(token.IDENT) {
 		return nil
 	}
+
+	stmt.Name = &ast.Identifier{Token: parserP.curToken, Value: parserP.curToken.Literal}
 
 	for !parserP.curTokenIs(token.SEMICOLON) {
 		parserP.NextToken()

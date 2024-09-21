@@ -4,7 +4,6 @@
 name: Go
 permissions:
   actions: write
-  attestations: write|none
   checks: write
   contents: write
   deployments: write

@@ -3,7 +3,15 @@
 
 name: Go
 permissions:
+  actions: write
+  attestations: write|none
+  checks: write
   contents: write
+  deployments: write
+  id-token: write
+  packages: write
+  pages: write
+  repository-projects: write
 on:
   push:
     branches: [ "main" ]

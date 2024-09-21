@@ -27,6 +27,6 @@ jobs:
     - name: Test
       run: go test -v -c ./...
 
-    - name: Go Unit Test Coverage Report
-      uses: fgrosse/go-coverage-report@v1.2.0
+    - name: Update coverage report
+      uses: ncruces/go-coverage-report@v0
             

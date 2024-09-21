@@ -30,5 +30,6 @@ jobs:
 
     - name: Update coverage report
       uses: ncruces/go-coverage-report@v0
+      with:
         output-dir: https://github.com/hareubi/Cathon/wiki
             

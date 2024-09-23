@@ -4,10 +4,14 @@ import (
 	"cathon/ast"
 	"cathon/lexer"
 	"cathon/token"
+	"fmt"
 )
 
 func New(lexerP *lexer.Lexer) Parser {
-	p := Parser{l: lexerP}
+	p := Parser{
+		l:      lexerP,
+		errors: []string{},
+	}
 	p.NextToken()
 	p.NextToken()
 
@@ -17,6 +21,7 @@ func New(lexerP *lexer.Lexer) Parser {
 type Parser struct {
 	l *lexer.Lexer
 
+	errors    []string
 	curToken  token.Token
 	peekToken token.Token
 }
@@ -57,6 +62,10 @@ func (parserP *Parser) ParseLetStatement() *ast.LetStatement {
 
 	stmt.Name = &ast.Identifier{Token: parserP.curToken, Value: parserP.curToken.Literal}
 
+	if !parserP.expectPeek(token.ASSIGN) {
+		return nil
+	}
+
 	for !parserP.curTokenIs(token.SEMICOLON) {
 		parserP.NextToken()
 	}
@@ -75,6 +84,15 @@ func (parserP *Parser) expectPeek(tokenB token.TokenType) bool {
 		parserP.NextToken()
 		return true
 	} else {
+		parserP.PeekError(tokenB)
 		return false
 	}
+}
+
+func (parserP *Parser) PeekError(tokenType token.TokenType) {
+	msg := fmt.Sprintf("expected next token to be %s, got %s instead", tokenType, parserP.peekToken.Type)
+	parserP.errors = append(parserP.errors, msg)
+}
+func (parserP *Parser) Errors() []string {
+	return parserP.errors
 }

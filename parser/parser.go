@@ -5,6 +5,7 @@ import (
 	"cathon/lexer"
 	"cathon/token"
 	"fmt"
+	"strconv"
 )
 
 const (
@@ -39,6 +40,7 @@ func New(lexerP *lexer.Lexer) Parser {
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.ParseIdentifier)
+	p.registerPrefix(token.INT, p.ParseIntegerLiteral)
 
 	return p
 }
@@ -48,6 +50,19 @@ func (p *Parser) NextToken() {
 }
 func (parserP *Parser) ParseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: parserP.curToken, Value: parserP.curToken.Literal}
+}
+
+func (parserP *Parser) ParseIntegerLiteral() ast.Expression {
+	lit := &ast.IntegerLiteral{Token: parserP.curToken}
+
+	value, err := strconv.ParseInt(parserP.curToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as integer", parserP.curToken.Literal)
+		parserP.errors = append(parserP.errors, msg)
+		return nil
+	}
+	lit.Value = value
+	return lit
 }
 
 type (

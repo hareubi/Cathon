@@ -171,6 +171,55 @@ func CheckIdentifierExpression(t *testing.T, testStatement ast.Statement, name s
 	return true
 }
 
+func TestIntegerLiteralExpression(t *testing.T) {
+	input := "5;"
+
+	testLexer := lexer.New(input)
+	testParser := New(testLexer)
+
+	program := testParser.ParseProgram()
+	CheckParserErrors(t, &testParser)
+	if program == nil {
+		t.Fatalf("ParseProgram() returned nil")
+	}
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 Statements. got %d Statements", len(program.Statements))
+	}
+
+	tests := []struct {
+		expectedIdentifier string
+	}{
+		{"5"},
+	}
+
+	for i, tt := range tests {
+		stmt := program.Statements[i]
+		if !CheckIntegerLiteralExpression(t, stmt, tt.expectedIdentifier) {
+			return
+		}
+	}
+}
+func CheckIntegerLiteralExpression(t *testing.T, testStatement ast.Statement, name string) bool {
+
+	ExpressionStmt, ok := testStatement.(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("ExpressionStatement is not *ast.ExpressionStatement. got %T", testStatement)
+		return false
+	}
+
+	literal, ok := ExpressionStmt.Expression.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("expected *ast.IntegerLiteral. got=%T", ExpressionStmt.Expression)
+		return false
+	}
+	if literal.TokenLiteral() != name {
+		t.Errorf("literal.TokenLiteral() is not %q. got %q", name, literal.TokenLiteral())
+		return false
+	}
+
+	return true
+}
+
 func CheckParserErrors(t *testing.T, ParserP *Parser) {
 	errors := ParserP.Errors()
 	if len(errors) == 0 {

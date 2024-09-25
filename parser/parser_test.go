@@ -75,3 +75,57 @@ func CheckParserErrors(t *testing.T, ParserP *Parser) {
 	}
 	t.FailNow()
 }
+
+func TestReturnStatements(t *testing.T) {
+	input := `
+	return 5;
+	return 10;
+	return 99993;
+	`
+
+	testLexer := lexer.New(input)
+	testParser := New(testLexer)
+
+	program := testParser.ParseProgram()
+	CheckParserErrors(t, &testParser)
+	if program == nil {
+		t.Fatalf("ParseProgram() returned nil")
+	}
+	if len(program.Statements) != 3 {
+		t.Fatalf("program.Statements does not contain 3 Statements. got %d Statements", len(program.Statements))
+	}
+
+	tests := []struct {
+		expectedIdentifier string
+	}{
+		{"5"},
+		{"10"},
+		{"99993"},
+	}
+
+	for i, tt := range tests {
+		stmt := program.Statements[i]
+		if !CheckReturnStatement(t, stmt, tt.expectedIdentifier) {
+			return
+		}
+	}
+}
+
+func CheckReturnStatement(t *testing.T, testStatement ast.Statement, name string) bool {
+	if testStatement.TokenLiteral() != "return" {
+		t.Errorf("testStatement.TokenLiteral is not 'return'. got %q", testStatement.TokenLiteral())
+		return false
+	}
+
+	returnStmt, ok := testStatement.(*ast.ReturnStatement)
+	if !ok {
+		t.Errorf("testStatement is not *ast.ReturnStatement. got %T", testStatement)
+		return false
+	}
+	if returnStmt.TokenLiteral() != "return" {
+		t.Errorf("returnStmt.Name.TokenLiteral() is not 'return'. got %q", returnStmt.TokenLiteral())
+		return false
+	}
+
+	return true
+}

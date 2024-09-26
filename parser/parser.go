@@ -143,7 +143,7 @@ func (parserP *Parser) ParseProgram() *ast.Program {
 	program.Statements = []ast.Statement{}
 	for parserP.curToken.Type != token.EOF {
 		stmt := parserP.ParseStatement()
-		if stmt != nil {
+		if stmt.TokenLiteral() != "" {
 			program.Statements = append(program.Statements, stmt)
 		}
 		parserP.NextToken()

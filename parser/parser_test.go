@@ -173,7 +173,10 @@ func CheckIdentifierExpression(t *testing.T, testStatement ast.Statement, name s
 }
 
 func TestIntegerLiteralExpression(t *testing.T) {
-	input := "5;"
+	input := `
+	5;
+	10
+	`
 
 	testLexer := lexer.New(input)
 	testParser := New(testLexer)
@@ -183,8 +186,8 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	if program == nil {
 		t.Fatalf("ParseProgram() returned nil")
 	}
-	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements does not contain 1 Statements. got %d Statements", len(program.Statements))
+	if len(program.Statements) != 2 {
+		t.Fatalf("program.Statements does not contain 2 Statements. got %d Statements", len(program.Statements))
 	}
 
 	test := "5"
@@ -202,8 +205,6 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	if literal.TokenLiteral() != test {
 		t.Fatalf("literal.TokenLiteral() is not %q. got %q", test, literal.TokenLiteral())
 	}
-
-	return
 }
 func TestParsingPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {

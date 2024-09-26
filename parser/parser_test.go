@@ -240,27 +240,68 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		if exp.Operator != tt.operator {
 			t.Fatalf("literal.TokenLiteral() is not %q. got %q", tt.operator, exp.Operator)
 		}
-		if !CheckPrefixExpressionIntegerLiteral(t, exp.Right, tt.integerValue) {
-			return
-		}
+		CheckIntegerLiteral(t, exp.Right, tt.integerValue)
 	}
 }
 
-func CheckPrefixExpressionIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
+func CheckIntegerLiteral(t *testing.T, il ast.Expression, value int64) {
 	integ, ok := il.(*ast.IntegerLiteral)
 	if !ok {
 		t.Errorf("il not *ast.IntegerLiteral. got=%T", il)
-		return false
+		return
 	}
 	if integ.Value != value {
 		t.Errorf("integ.Value is not %d. got %d", value, integ.Value)
-		return false
 	}
 	if integ.TokenLiteral() != fmt.Sprintf("%d", value) {
 		t.Errorf("integ.Value is not %d. got %s", value, integ.TokenLiteral())
-		return false
 	}
-	return true
+}
+func TestParsingInfixExpressions(t *testing.T) {
+	infixTests := []struct {
+		input      string
+		leftValue  int64
+		operator   string
+		rightValue int64
+	}{
+		{"100 + 1;", 100, "+", 1},
+		{"101-2", 101, "-", 2},
+		{"102 /3;", 102, "/", 3},
+		{"103* 4", 103, "*", 4},
+		{"104 < 5", 104, "<", 5},
+		{"105 > 6", 105, ">", 6},
+		{"106 == 7", 106, "==", 7},
+		{"107 != 8", 107, "!=", 8},
+	}
+	for i, tt := range infixTests {
+		testLexer := lexer.New(tt.input)
+		testParser := New(testLexer)
+
+		program := testParser.ParseProgram()
+		CheckParserErrors(t, &testParser)
+		if program == nil {
+			t.Fatalf("ParseProgram() returned nil")
+		}
+		if len(program.Statements) != 1 {
+			t.Errorf("program%d.Statements does not contain 1 Statements. got %d Statements", i, len(program.Statements))
+		}
+		testStatement := program.Statements[0]
+		ExpressionStmt, ok := testStatement.(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("ExpressionStatement[0] is not *ast.ExpressionStatement. got %T", program.Statements[0])
+		}
+
+		exp, ok := ExpressionStmt.Expression.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("expected *ast.InfixExpression. got=%T", ExpressionStmt.Expression)
+		}
+
+		CheckIntegerLiteral(t, exp.Left, tt.leftValue)
+		if exp.Operator != tt.operator {
+			t.Errorf("tt.operator is not %q. got %q", tt.operator, exp.Operator)
+		}
+		CheckIntegerLiteral(t, exp.Right, tt.rightValue)
+	}
 }
 
 func CheckParserErrors(t *testing.T, ParserP *Parser) {

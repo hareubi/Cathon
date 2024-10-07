@@ -13,7 +13,29 @@ func TestLetStatements(t *testing.T) {
 	let y = 10;
 	let foobar = 838383;
 	`
+	expectedIdentifiers := []string{"x", "y", "foobar"}
+	CheckParseStatements(t, input, 3, expectedIdentifiers, CheckLetStatement)
+}
 
+func TestReturnStatements(t *testing.T) {
+	input := `
+	return 5;
+	return 10;
+	return 99993;
+	`
+	expectedIdentifiers := []string{"5", "10", "99993"}
+	CheckParseStatements(t, input, 3, expectedIdentifiers, CheckReturnStatement)
+}
+
+func TestIdentifierExpression(t *testing.T) {
+	input := `
+	foobar
+	`
+	expectedIdentifiers := []string{"foobar"}
+	CheckParseStatements(t, input, 1, expectedIdentifiers, CheckIdentifierExpression)
+}
+
+func CheckParseStatements(t *testing.T, input string, expectedStmtCount int, expectedIdentifiers []string, checkFunc func(*testing.T, ast.Statement, string) bool) {
 	testLexer := lexer.New(input)
 	testParser := New(testLexer)
 
@@ -22,25 +44,18 @@ func TestLetStatements(t *testing.T) {
 	if program == nil {
 		t.Fatalf("ParseProgram() returned nil")
 	}
-	if len(program.Statements) != 3 {
-		t.Fatalf("program.Statements does not contain 3 Statements. got %d Statements", len(program.Statements))
+	if len(program.Statements) != expectedStmtCount {
+		t.Fatalf("program.Statements does not contain %d Statements. got %d Statements", expectedStmtCount, len(program.Statements))
 	}
 
-	tests := []struct {
-		expectedIdentifier string
-	}{
-		{"x"},
-		{"y"},
-		{"foobar"},
-	}
-
-	for i, tt := range tests {
+	for i, expectedIdentifier := range expectedIdentifiers {
 		stmt := program.Statements[i]
-		if !CheckLetStatement(t, stmt, tt.expectedIdentifier) {
+		if !checkFunc(t, stmt, expectedIdentifier) {
 			return
 		}
 	}
 }
+
 func CheckLetStatement(t *testing.T, testStatement ast.Statement, name string) bool {
 	if testStatement.TokenLiteral() != "let" {
 		t.Errorf("testStatement.TokenLiteral is not 'let'. got %q", testStatement.TokenLiteral())
@@ -54,50 +69,14 @@ func CheckLetStatement(t *testing.T, testStatement ast.Statement, name string) b
 	}
 	if letStmt.Name.Value != name {
 		t.Errorf("letStmt.Name.Value is not '%s'. got=%s", name, letStmt.Name.Value)
-		return false
 	}
 	if letStmt.TokenLiteral() != "let" {
 		t.Errorf("letStmt.Name.TokenLiteral() is not '%s'. got %q", name, letStmt.Name.TokenLiteral())
-		return false
 	}
 
 	return true
 }
 
-func TestReturnStatements(t *testing.T) {
-	input := `
-	return 5;
-	return 10;
-	return 99993;
-	`
-
-	testLexer := lexer.New(input)
-	testParser := New(testLexer)
-
-	program := testParser.ParseProgram()
-	CheckParserErrors(t, &testParser)
-	if program == nil {
-		t.Fatalf("ParseProgram() returned nil")
-	}
-	if len(program.Statements) != 3 {
-		t.Fatalf("program.Statements does not contain 3 Statements. got %d Statements", len(program.Statements))
-	}
-
-	tests := []struct {
-		expectedIdentifier string
-	}{
-		{"5"},
-		{"10"},
-		{"99993"},
-	}
-
-	for i, tt := range tests {
-		stmt := program.Statements[i]
-		if !CheckReturnStatement(t, stmt, tt.expectedIdentifier) {
-			return
-		}
-	}
-}
 func CheckReturnStatement(t *testing.T, testStatement ast.Statement, name string) bool {
 	if testStatement.TokenLiteral() != "return" {
 		t.Errorf("testStatement.TokenLiteral is not 'return'. got %q", testStatement.TokenLiteral())
@@ -107,48 +86,15 @@ func CheckReturnStatement(t *testing.T, testStatement ast.Statement, name string
 	returnStmt, ok := testStatement.(*ast.ReturnStatement)
 	if !ok {
 		t.Errorf("testStatement is not *ast.ReturnStatement. got %T", testStatement)
-		return false
 	}
 	if returnStmt.TokenLiteral() != "return" {
 		t.Errorf("returnStmt.Name.TokenLiteral() is not 'return'. got %q", returnStmt.TokenLiteral())
-		return false
 	}
 
 	return true
 }
 
-func TestIdentifierExpression(t *testing.T) {
-	input := `
-	foobar
-	`
-
-	testLexer := lexer.New(input)
-	testParser := New(testLexer)
-
-	program := testParser.ParseProgram()
-	CheckParserErrors(t, &testParser)
-	if program == nil {
-		t.Fatalf("ParseProgram() returned nil")
-	}
-	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements does not contain 1 Statements. got %d Statements", len(program.Statements))
-	}
-
-	tests := []struct {
-		expectedIdentifier string
-	}{
-		{"foobar"},
-	}
-
-	for i, tt := range tests {
-		stmt := program.Statements[i]
-		if !CheckIdentifierExpression(t, stmt, tt.expectedIdentifier) {
-			return
-		}
-	}
-}
 func CheckIdentifierExpression(t *testing.T, testStatement ast.Statement, name string) bool {
-
 	ExpressionStmt, ok := testStatement.(*ast.ExpressionStatement)
 	if !ok {
 		t.Errorf("ExpressionStatement is not *ast.ExpressionStatement. got %T", testStatement)
@@ -162,11 +108,9 @@ func CheckIdentifierExpression(t *testing.T, testStatement ast.Statement, name s
 	}
 	if ident.TokenLiteral() != name {
 		t.Errorf("ident.TokenLiteral() is not %q. got %q", name, ident.TokenLiteral())
-		return false
 	}
 	if ident.Value != name {
 		t.Errorf("ident.Value is not %q. got %q", name, ident.Value)
-		return false
 	}
 
 	return true
@@ -206,6 +150,7 @@ func TestIntegerLiteralExpression(t *testing.T) {
 		t.Fatalf("literal.TokenLiteral() is not %q. got %q", test, literal.TokenLiteral())
 	}
 }
+
 func TestParsingPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
 		input        string
@@ -258,6 +203,7 @@ func CheckIntegerLiteral(t *testing.T, il ast.Expression, value int64) {
 		t.Errorf("integ.Value is not %d. got %s", value, integ.TokenLiteral())
 	}
 }
+
 func TestParsingInfixExpressions(t *testing.T) {
 	infixTests := []struct {
 		input      string

@@ -30,8 +30,8 @@ type Parser struct {
 	infixParseFns  map[token.TokenType]infixParseFn
 }
 
-func New(lexerP *lexer.Lexer) Parser {
-	p := Parser{
+func New(lexerP *lexer.Lexer) *Parser {
+	p := &Parser{
 		l:      lexerP,
 		errors: []string{},
 	}
@@ -43,6 +43,8 @@ func New(lexerP *lexer.Lexer) Parser {
 	p.registerPrefix(token.INT, p.ParseIntegerLiteral)
 	p.registerPrefix(token.BANG, p.ParsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.ParsePrefixExpression)
+	p.registerPrefix(token.TRUE, p.ParseBool)
+	p.registerPrefix(token.FALSE, p.ParseBool)
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.ParseInfixExpression)
 	p.registerInfix(token.MINUS, p.ParseInfixExpression)
@@ -56,14 +58,15 @@ func New(lexerP *lexer.Lexer) Parser {
 	return p
 }
 func (p *Parser) NextToken() {
+	defer untrace(trace("NextToken"))
 	p.curToken = p.peekToken
 	p.peekToken = p.l.NextToken()
+	fmt.Printf("%s %p\n", p.curToken.Literal, p)
 }
 func (parserP *Parser) ParseIdentifier() ast.Expression {
 	defer untrace(trace("ParseIdentifier"))
 	return &ast.Identifier{Token: parserP.curToken, Value: parserP.curToken.Literal}
 }
-
 func (parserP *Parser) ParseIntegerLiteral() ast.Expression {
 	defer untrace(trace("ParseIntegerLiteral"))
 	lit := &ast.IntegerLiteral{Token: parserP.curToken}
@@ -76,6 +79,11 @@ func (parserP *Parser) ParseIntegerLiteral() ast.Expression {
 	}
 	lit.Value = value
 	return lit
+}
+func (parserP *Parser) ParseBool() ast.Expression {
+	defer untrace(trace("ParseBool: " + parserP.curToken.Literal))
+	fmt.Printf("%p\n", parserP)
+	return &ast.Boolean{Token: parserP.curToken, Value: parserP.curTokenIs(token.TRUE)}
 }
 func (parserP *Parser) ParsePrefixExpression() ast.Expression {
 	defer untrace(trace("ParsePrefixExpression"))
@@ -156,6 +164,7 @@ func (parserP *Parser) ParseProgram() *ast.Program {
 }
 
 func (parserP *Parser) ParseStatement() ast.Statement {
+	defer untrace(trace("ParseStatement"))
 	switch parserP.curToken.Type {
 	case token.LET:
 		return parserP.ParseLetStatement()
@@ -258,7 +267,7 @@ func (parserP *Parser) Errors() []string {
 	return parserP.errors
 }
 
-func (parserP *Parser) RegisterParsePrefixError(tokenType token.TokenType) { //TODO:somehow does not work when encounter EOF or ;need fix
+func (parserP *Parser) RegisterParsePrefixError(tokenType token.TokenType) {
 	fmt.Printf("wth its not working")
 	msg := fmt.Sprintf("no parse prefix function for %s", tokenType)
 	parserP.errors = append(parserP.errors, msg)

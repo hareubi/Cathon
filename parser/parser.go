@@ -60,10 +60,12 @@ func (p *Parser) NextToken() {
 	p.peekToken = p.l.NextToken()
 }
 func (parserP *Parser) ParseIdentifier() ast.Expression {
+	defer untrace(trace("ParseIdentifier"))
 	return &ast.Identifier{Token: parserP.curToken, Value: parserP.curToken.Literal}
 }
 
 func (parserP *Parser) ParseIntegerLiteral() ast.Expression {
+	defer untrace(trace("ParseIntegerLiteral"))
 	lit := &ast.IntegerLiteral{Token: parserP.curToken}
 
 	value, err := strconv.ParseInt(parserP.curToken.Literal, 0, 64)
@@ -76,6 +78,7 @@ func (parserP *Parser) ParseIntegerLiteral() ast.Expression {
 	return lit
 }
 func (parserP *Parser) ParsePrefixExpression() ast.Expression {
+	defer untrace(trace("ParsePrefixExpression"))
 	expression := &ast.PrefixExpression{
 		Token:    parserP.curToken,
 		Operator: parserP.curToken.Literal,
@@ -88,6 +91,7 @@ func (parserP *Parser) ParsePrefixExpression() ast.Expression {
 	return expression
 }
 func (parserP *Parser) ParseInfixExpression(left ast.Expression) ast.Expression {
+	defer untrace(trace("ParseInfixExpression"))
 	parserP.NextToken()
 	expression := &ast.InfixExpression{
 		Token:    parserP.curToken,
@@ -162,6 +166,7 @@ func (parserP *Parser) ParseStatement() ast.Statement {
 	}
 }
 func (parserP *Parser) ParseLetStatement() *ast.LetStatement {
+	defer untrace(trace("ParseLetStatement"))
 	stmt := &ast.LetStatement{Token: parserP.curToken}
 
 	if !parserP.expectPeek(token.IDENT) {
@@ -181,6 +186,7 @@ func (parserP *Parser) ParseLetStatement() *ast.LetStatement {
 	return stmt
 }
 func (parserP *Parser) ParseReturnStatement() *ast.ReturnStatement {
+	defer untrace(trace("ParseReturnStatement"))
 	stmt := &ast.ReturnStatement{Token: parserP.curToken}
 
 	if !parserP.expectPeek(token.INT) {
@@ -196,6 +202,7 @@ func (parserP *Parser) ParseReturnStatement() *ast.ReturnStatement {
 	return stmt
 }
 func (parserP *Parser) ParseExpressionStatement() *ast.ExpressionStatement {
+	defer untrace(trace("ParseExpressionStatement"))
 	stmt := &ast.ExpressionStatement{Token: parserP.curToken}
 	stmt.Expression = parserP.ParseExpression(LOWEST)
 
@@ -206,6 +213,7 @@ func (parserP *Parser) ParseExpressionStatement() *ast.ExpressionStatement {
 	return stmt
 }
 func (parserP *Parser) ParseExpression(precedence int) ast.Expression {
+	defer untrace(trace("ParseExpression"))
 	prefix := parserP.prefixParseFns[parserP.curToken.Type]
 	if prefix == nil {
 		parserP.RegisterParsePrefixError(parserP.curToken.Type)

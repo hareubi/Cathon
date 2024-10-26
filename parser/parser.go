@@ -45,6 +45,7 @@ func New(lexerP *lexer.Lexer) *Parser {
 	p.registerPrefix(token.MINUS, p.ParsePrefixExpression)
 	p.registerPrefix(token.TRUE, p.ParseBool)
 	p.registerPrefix(token.FALSE, p.ParseBool)
+	p.registerPrefix(token.LPAREN, p.ParseGroupedExpression)
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.ParseInfixExpression)
 	p.registerInfix(token.MINUS, p.ParseInfixExpression)
@@ -85,6 +86,16 @@ func (parserP *Parser) ParseBool() ast.Expression {
 	fmt.Printf("%p\n", parserP)
 	return &ast.Boolean{Token: parserP.curToken, Value: parserP.curTokenIs(token.TRUE)}
 }
+func (parserP *Parser) ParseGroupedExpression() ast.Expression {
+	defer untrace(trace("ParseGroupedExpression"))
+	parserP.NextToken()
+	exp := parserP.ParseExpression(LOWEST)
+	if !parserP.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return exp
+}
 func (parserP *Parser) ParsePrefixExpression() ast.Expression {
 	defer untrace(trace("ParsePrefixExpression"))
 	expression := &ast.PrefixExpression{
@@ -100,13 +111,11 @@ func (parserP *Parser) ParsePrefixExpression() ast.Expression {
 }
 func (parserP *Parser) ParseInfixExpression(left ast.Expression) ast.Expression {
 	defer untrace(trace("ParseInfixExpression"))
-	parserP.NextToken()
 	expression := &ast.InfixExpression{
 		Token:    parserP.curToken,
 		Operator: parserP.curToken.Literal,
 		Left:     left,
 	}
-
 	precedence := parserP.CurPrecedence()
 	parserP.NextToken()
 	expression.Right = parserP.ParseExpression(precedence)
@@ -235,9 +244,8 @@ func (parserP *Parser) ParseExpression(precedence int) ast.Expression {
 		if infix == nil {
 			return leftExp
 		}
-
-		leftExp = infix(leftExp)
 		parserP.NextToken()
+		leftExp = infix(leftExp)
 
 	}
 	return leftExp

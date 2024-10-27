@@ -115,7 +115,8 @@ func (parserP *Parser) ParseIfExpression() ast.Expression {
 	}
 	exp.Consequence = parserP.ParseBlockStatement()
 
-	if parserP.expectPeek(token.ELSE) {
+	if parserP.peekTokenIs(token.ELSE) {
+		parserP.NextToken()
 		if !parserP.expectPeek(token.LBRACE) {
 			return nil
 		}

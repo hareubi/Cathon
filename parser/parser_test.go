@@ -5,6 +5,7 @@ import (
 	"cathon/lexer"
 	"fmt"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -284,6 +285,12 @@ func TestOperatorPrecedenceExpression(t *testing.T) {
 	`
 	CheckParseExpression(t, input, 2, []string{"((1 + (2 + 3)) + 4)","((1 + 2) + (3 + 4))"}, CheckOperatorPrecedenceExpression)
 }
+func TestFunctionExpression(t *testing.T) {
+	input := `
+	fn(x, y) { x + y; }
+	`
+	CheckParseExpression(t, input, 1, []string{"x,y,x,+,y"}, CheckFunctionExpression)
+}
 
 func CheckOperatorPrecedenceExpression(t *testing.T, exp ast.Expression, expected  string) {
 			actual := exp.String()
@@ -291,7 +298,6 @@ func CheckOperatorPrecedenceExpression(t *testing.T, exp ast.Expression, expecte
 			t.Errorf("expected=%q, got=%q", expected , actual)
 		}
 }
-
 func CheckParseExpression(t *testing.T, input string, expectedStmtCount int, expectedIdentifiers []string, checkFunc func(*testing.T, ast.Expression, string)) {
 	testLexer := lexer.New(input)
 	testParser := New(testLexer)
@@ -406,4 +412,23 @@ func CheckLiteralExpression(t *testing.T, exp ast.Expression, expected interface
 		return
 	}
 	t.Errorf("type of exp not handled. got=%T", exp)
+}
+func CheckFunctionExpression(t *testing.T, exp ast.Expression, expected string) {
+	
+	expectedArray := strings.Split(expected, ",")
+	for i ,value := range(expectedArray) {
+		expectedArray[i] =strings.NewReplacer(",", "").Replace(value)
+	}
+	function, ok := exp.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("expected *ast.FunctionLiteral. got=%T", exp)
+	}
+	CheckLiteralExpression(t, function.Parameters[0], expectedArray[0])
+	CheckLiteralExpression(t, function.Parameters[1], expectedArray[1])
+
+	bodyStmt, ok:= function.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("expected *ast.ExpressionStatement. got=%T", function.Body.Statements[0])
+	} 
+	CheckInfixExpression(t, bodyStmt.Expression, expectedArray[2], expectedArray[3], expectedArray[4])
 }

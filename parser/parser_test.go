@@ -291,6 +291,12 @@ func TestFunctionExpression(t *testing.T) {
 	`
 	CheckParseExpression(t, input, 1, []string{"x,y,x,+,y"}, CheckFunctionExpression)
 }
+func TestCallExpression(t *testing.T) {
+	input := `
+	add(1,2 * 3,4+ 5);
+	`
+	CheckParseExpression(t, input, 1, []string{"add,1,2,*,3,4,+,5"}, CheckCallExpression)
+}
 
 func CheckOperatorPrecedenceExpression(t *testing.T, exp ast.Expression, expected  string) {
 			actual := exp.String()
@@ -358,8 +364,7 @@ func CheckBoolExpression(t *testing.T, testExpression ast.Expression, isTrue str
 func CheckIntegerLiteral(t *testing.T, il ast.Expression, value int64) {
 	integ, ok := il.(*ast.IntegerLiteral)
 	if !ok {
-		t.Errorf("il not *ast.IntegerLiteral. got=%T", il)
-		return
+		t.Fatalf("il not *ast.IntegerLiteral. got=%T", il)
 	}
 	if integ.Value != value {
 		t.Errorf("integ.Value is not %d. got %d", value, integ.Value)
@@ -380,8 +385,8 @@ func CheckIdentifierExpression(t *testing.T, testExpression ast.Expression, name
 		t.Errorf("ident.Value is not %q. got %q", name, ident.Value)
 	}
 }
-func CheckInfixExpression(t *testing.T, exp ast.Expression, left string,
-	operator string, right string) {
+func CheckInfixExpression(t *testing.T, exp ast.Expression, left interface{},
+	operator string, right interface{}) {
 
 	opExp, ok := exp.(*ast.InfixExpression)
 	if !ok {
@@ -431,4 +436,42 @@ func CheckFunctionExpression(t *testing.T, exp ast.Expression, expected string) 
 		t.Fatalf("expected *ast.ExpressionStatement. got=%T", function.Body.Statements[0])
 	} 
 	CheckInfixExpression(t, bodyStmt.Expression, expectedArray[2], expectedArray[3], expectedArray[4])
+}
+func CheckCallExpression(t *testing.T, exp ast.Expression, expected string) {
+	
+	expectedArray := strings.Split(expected, ",")
+	for i ,value := range(expectedArray) {
+		expectedArray[i] =strings.NewReplacer(",", "").Replace(value)
+	}
+	call, ok := exp.(*ast.CallExpression)
+	if !ok {
+		t.Fatalf("expected *ast.CallExpression. got=%T", exp)
+	}
+	CheckIdentifierExpression(t, call.Function, expectedArray[0])
+	if len(call.Arguments) != 3{
+		t.Fatalf("expected 3 arguments, got %d",len(call.Arguments))
+	}
+	data, err:= strconv.ParseInt(expectedArray[1],10,16)
+	if err!= nil {
+		t.Fatalf("error parsing testdata. got=%q",err.Error())
+	}
+	CheckLiteralExpression(t, call.Arguments[0], data)
+		data1, err:= strconv.ParseInt(expectedArray[2],10,16)
+	if err!= nil {
+		t.Fatalf("error parsing testdata. got=%q",err.Error())
+	}
+		data2, err:= strconv.ParseInt(expectedArray[4],10,16)
+	if err!= nil {
+		t.Fatalf("error parsing testdata. got=%q",err.Error())
+	}
+		data3, err:= strconv.ParseInt(expectedArray[5],10,16)
+	if err!= nil {
+		t.Fatalf("error parsing testdata. got=%q",err.Error())
+	}
+		data4, err:= strconv.ParseInt(expectedArray[7],10,16)
+	if err!= nil {
+		t.Fatalf("error parsing testdata. got=%q",err.Error())
+	}
+	CheckInfixExpression(t, call.Arguments[1], data1 ,expectedArray[3], data2)
+	CheckInfixExpression(t, call.Arguments[2], data3, expectedArray[6], data4)
 }

@@ -245,7 +245,7 @@ func (parserP *Parser) ParseProgram() *ast.Program {
 	program.Statements = []ast.Statement{}
 	for parserP.curToken.Type != token.EOF {
 		stmt := parserP.ParseStatement()
-		if stmt.TokenLiteral() != "" {
+		if stmt != nil {
 			program.Statements = append(program.Statements, stmt)
 		}
 		parserP.NextToken()
@@ -276,7 +276,8 @@ func (parserP *Parser) ParseLetStatement() *ast.LetStatement {
 	if !parserP.ExpectPeek(token.ASSIGN) {
 		return nil
 	}
-
+	parserP.NextToken()
+	stmt.Value = parserP.ParseExpression(LOWEST)
 	for !parserP.CurTokenIs(token.SEMICOLON) {
 		parserP.NextToken()
 	}
@@ -287,11 +288,9 @@ func (parserP *Parser) ParseReturnStatement() *ast.ReturnStatement {
 	defer untrace(trace("ParseReturnStatement"))
 	stmt := &ast.ReturnStatement{Token: parserP.curToken}
 
-	if !parserP.ExpectPeek(token.INT) {
-		return nil
-	}
+	parserP.NextToken()
 
-	stmt.ReturnValue = &ast.Identifier{Token: parserP.curToken, Value: parserP.curToken.Literal}
+	stmt.ReturnValue = parserP.ParseExpression(LOWEST)
 
 	for !parserP.CurTokenIs(token.SEMICOLON) {
 		parserP.NextToken()

@@ -12,19 +12,19 @@ import (
 func TestLetStatements(t *testing.T) {
 	input := `
 	let x = 5;
-	let y = 10;
-	let foobar = 838383;
+	let y = true;
+	let foobar = x;
 	`
-	expectedIdentifiers := []string{"x", "y", "foobar"}
+	expectedIdentifiers := []string{"x,5", "y,true", "foobar,x"}
 	CheckParseStatements(t, input, 3, expectedIdentifiers, CheckLetStatement)
 }
 func TestReturnStatements(t *testing.T) {
 	input := `
 	return 5;
-	return 10;
-	return 99993;
+	return true;
+	return x;
 	`
-	expectedIdentifiers := []string{"5", "10", "99993"}
+	expectedIdentifiers := []string{"5", "true", "x"}
 	CheckParseStatements(t, input, 3, expectedIdentifiers, CheckReturnStatement)
 }
 func CheckParseStatements(t *testing.T, input string, expectedStmtCount int, expectedIdentifiers []string, checkFunc func(*testing.T, ast.Statement, string)) {
@@ -45,7 +45,11 @@ func CheckParseStatements(t *testing.T, input string, expectedStmtCount int, exp
 		checkFunc(t, stmt, expectedIdentifier)
 	}
 }
-func CheckLetStatement(t *testing.T, testStatement ast.Statement, name string) {
+func CheckLetStatement(t *testing.T, testStatement ast.Statement, expected string) {
+		expectedArray := strings.Split(expected, ",")
+	for i ,value := range(expectedArray) {
+		expectedArray[i] =strings.NewReplacer(",", "").Replace(value)
+	}
 	if testStatement.TokenLiteral() != "let" {
 		t.Errorf("testStatement.TokenLiteral is not 'let'. got %q", testStatement.TokenLiteral())
 	}
@@ -53,14 +57,17 @@ func CheckLetStatement(t *testing.T, testStatement ast.Statement, name string) {
 	if !ok {
 		t.Fatalf("testStatement is not *ast.LetStatement. got %T", testStatement)
 	}
-	if letStmt.Name.Value != name {
-		t.Errorf("letStmt.Name.Value is not '%s'. got=%s", name, letStmt.Name.Value)
+	if letStmt.Name.Value != expectedArray[0] {
+		t.Errorf("letStmt.Name.Value is not '%s'. got=%s", expectedArray[0], letStmt.Name.Value)
+	}
+		if letStmt.Value.String() != expectedArray[1] {
+		t.Errorf("letStmt.Value.String() is not '%s'. got=%s", expectedArray[1], letStmt.Value.String())
 	}
 	if letStmt.TokenLiteral() != "let" {
-		t.Errorf("letStmt.Name.TokenLiteral() is not '%s'. got %q", name, letStmt.Name.TokenLiteral())
+		t.Errorf("letStmt.Name.TokenLiteral() is not '%s'. got %q", expected, letStmt.Name.TokenLiteral())
 	}
 }
-func CheckReturnStatement(t *testing.T, testStatement ast.Statement, name string) {
+func CheckReturnStatement(t *testing.T, testStatement ast.Statement, expected string) {
 	if testStatement.TokenLiteral() != "return" {
 		t.Errorf("testStatement.TokenLiteral is not 'return'. got %q", testStatement.TokenLiteral())
 	}
@@ -68,8 +75,11 @@ func CheckReturnStatement(t *testing.T, testStatement ast.Statement, name string
 	if !ok {
 		t.Fatalf("testStatement is not *ast.ReturnStatement. got %T", testStatement)
 	}
+	if returnStmt.ReturnValue.String() != expected {
+		t.Errorf("returnStmt.ReturnValue.String() is not 'return'. got %q", expected)
+	}
 	if returnStmt.TokenLiteral() != "return" {
-		t.Errorf("returnStmt.Name.TokenLiteral() is not 'return'. got %q", returnStmt.TokenLiteral())
+		t.Errorf("returnStmt.TokenLiteral() is not 'return'. got %q", returnStmt.TokenLiteral())
 	}
 }
 

@@ -6,8 +6,9 @@ const (
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
 
-	IDENT = "IDENT"
-	INT   = "INT"
+	IDENT  = "IDENT"
+	INT    = "INT"
+	STRING = "STRING" // "foobar"
 
 	ASSIGN   = "="
 	PLUS     = "+"
@@ -18,13 +19,16 @@ const (
 
 	COMMA     = ","
 	SEMICOLON = ";"
+	COLON     = ":"
 
-	LPAREN = "("
-	RPAREN = ")"
-	LBRACE = "{"
-	RBRACE = "}"
-	LT     = "<"
-	GT     = ">"
+	LPAREN   = "("
+	RPAREN   = ")"
+	LBRACE   = "{"
+	RBRACE   = "}"
+	LBRACKET = "["
+	RBRACKET = "]"
+	LT       = "<"
+	GT       = ">"
 
 	FUNCTION = "FUNCTION"
 	LET      = "LET"

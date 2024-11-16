@@ -51,59 +51,69 @@ func (l *Lexer) NextToken() token.Token {
 			ch := l.ch
 			l.ReadChar()
 			literal := string(ch) + string(l.ch)
-			tok = token.Token{Type: token.TokenType(token.EQ), Literal: literal}
+			tok = token.Token{Type: token.EQ, Literal: literal}
 		} else {
-			tok = NewToken(token.TokenType(token.ASSIGN), '=')
+			tok = NewToken(token.ASSIGN, l.ch)
 		}
+	case '+':
+		tok = NewToken(token.PLUS, l.ch)
 	case '-':
-		tok = NewToken(token.TokenType(token.MINUS), '-')
-	case '/':
-		tok = NewToken(token.TokenType(token.SLASH), '/')
-	case '*':
-		tok = NewToken(token.TokenType(token.ASTERISK), '*')
+		tok = NewToken(token.MINUS, l.ch)
 	case '!':
 		if l.PeekChar() == '=' {
 			ch := l.ch
 			l.ReadChar()
 			literal := string(ch) + string(l.ch)
-			tok = token.Token{Type: token.TokenType(token.NOTEQ), Literal: literal}
+			tok = token.Token{Type: token.NOTEQ, Literal: literal}
 		} else {
-			tok = NewToken(token.TokenType(token.BANG), '!')
+			tok = NewToken(token.BANG, l.ch)
 		}
-	case ';':
-		tok = NewToken(token.TokenType(token.SEMICOLON), ';')
-	case '(':
-		tok = NewToken(token.TokenType(token.LPAREN), '(')
-	case ')':
-		tok = NewToken(token.TokenType(token.RPAREN), ')')
-	case ',':
-		tok = NewToken(token.TokenType(token.COMMA), ',')
-	case '+':
-		tok = NewToken(token.TokenType(token.PLUS), '+')
-	case '{':
-		tok = NewToken(token.TokenType(token.LBRACE), '{')
-	case '}':
-		tok = NewToken(token.TokenType(token.RBRACE), '}')
+	case '/':
+		tok = NewToken(token.SLASH, l.ch)
+	case '*':
+		tok = NewToken(token.ASTERISK, l.ch)
 	case '<':
-		tok = NewToken(token.TokenType(token.LT), '<')
+		tok = NewToken(token.LT, l.ch)
 	case '>':
-		tok = NewToken(token.TokenType(token.GT), '>')
+		tok = NewToken(token.GT, l.ch)
+	case ';':
+		tok = NewToken(token.SEMICOLON, l.ch)
+	case ':':
+		tok = NewToken(token.COLON, l.ch)
+	case ',':
+		tok = NewToken(token.COMMA, l.ch)
+	case '{':
+		tok = NewToken(token.LBRACE, l.ch)
+	case '}':
+		tok = NewToken(token.RBRACE, l.ch)
+	case '(':
+		tok = NewToken(token.LPAREN, l.ch)
+	case ')':
+		tok = NewToken(token.RPAREN, l.ch)
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.ReadString()
+	case '[':
+		tok = NewToken(token.LBRACKET, l.ch)
+	case ']':
+		tok = NewToken(token.RBRACKET, l.ch)
 	case 0:
-		tok.Type = token.EOF
 		tok.Literal = ""
+		tok.Type = token.EOF
 	default:
 		if unicode.IsLetter(l.ch) {
 			tok.Literal = l.ReadIdentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
 			return tok
 		} else if unicode.IsDigit(l.ch) {
-			tok.Literal = l.ReadNumber()
 			tok.Type = token.INT
+			tok.Literal = l.ReadNumber()
 			return tok
 		} else {
 			tok = NewToken(token.ILLEGAL, l.ch)
 		}
 	}
+
 	l.ReadChar()
 	return tok
 }
@@ -128,4 +138,15 @@ func (l *Lexer) SkipWhiteSpace() {
 	for unicode.IsSpace(l.ch) {
 		l.ReadChar()
 	}
+}
+
+func (l *Lexer) ReadString() string {
+	position := l.position + 1
+	for {
+		l.ReadChar()
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
+	}
+	return l.input[position:l.position]
 }
